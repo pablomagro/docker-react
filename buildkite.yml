@@ -1,11 +1,7 @@
 steps:
-  - name: "Docker Build"
-    command: |
-      sudo docker build -t pmagas/docker-react -f Dockerfile.dev .
-    agents:
-      docker: true
-  - name: "Test with Coverage"
-    command: |
-      sudo docker run -e CI=true pmagas/docker-react npm run test-cov
-    agents:
-      docker: true
+  - label: ":docker: Build and Test"
+    plugins:
+      - docker#v3.5.0:
+          build: "pmagas/docker-react"
+          dockerfile: "Dockerfile.dev"
+    command: "docker run -e CI=true pmagas/docker-react npm run test-cov"
