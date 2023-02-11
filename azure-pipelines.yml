@@ -9,14 +9,23 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+# steps:
+# - task: NodeTool@0
+#   inputs:
+#     versionSpec: '16.x'
+#   displayName: 'Install Node.js'
+
+# - script: |
+#     npm install
+#     npm run build
+#     npm run test-cov
+#   displayName: 'npm install, build and test'
+
 steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '16.x'
-  displayName: 'Install Node.js'
+- script: |
+    docker build -t pmagas/docker-react -f Dockerfile.dev .
+  displayName: 'Build Docker image'
 
 - script: |
-    npm install
-    npm run build
-    npm run test-cov
-  displayName: 'npm install, build and test'
+    docker run -e CI=true pmagas/docker-react npm run test-cov
+  displayName: 'Run tests in Docker container'
