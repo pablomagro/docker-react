@@ -1,0 +1,7 @@
+steps:
+  - label: ":docker: Build and Test"
+    plugins:
+      - docker#v3.5.0:
+          build: "pmagas/docker-react"
+          dockerfile: "Dockerfile.dev"
+    command: "docker run -e CI=true pmagas/docker-react npm run test-cov"
