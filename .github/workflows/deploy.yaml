@@ -30,44 +30,30 @@
 #           deployment_package: deploy.zip
 #           use_existing_version_if_available: true
 
-name: Deploy Frontend CI
+steps:
+  - uses: actions/checkout@v2
 
-on:
-  push:
-    branches:
-      - master
-      - feature/*
+  - if: startsWith(github.ref, 'refs/heads/feature/') # build only for feature branches
+    name: Build, login and test Docker image
+    run: |
+      docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      docker build -t pmagas/docker-react -f Dockerfile.dev .
+      docker run -e CI=true pmagas/docker-react npm run test-cov
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  - if: github.ref == 'refs/heads/master' # deploy only for the master branch
+    name: Generate deployment package
+    run: zip -r deploy.zip . -x '*.git*'
 
-    steps:
-      - uses: actions/checkout@v2
-
-      - if: startsWith(github.ref, 'refs/heads/feature/') # build only for feature branches
-        name: Build, login and test Docker image
-        run: |
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -t pmagas/docker-react -f Dockerfile.dev .
-          docker run -e CI=true pmagas/docker-react npm run test-cov
-
-      # - if: github.ref == 'refs/heads/master' # run only for master branch
-      #   name: Generate deployment package
-      #   run: zip -r deploy.zip . -x '*.git*'
-
-      - if: github.ref == 'refs/heads/master' # deploy only for the master branch
-        name: Generate deployment package
-        run: zip -r deploy.zip . -x '*.git*'
-        name: Deploy to Elastic Beanstalk
-        uses: einaregilsson/beanstalk-deploy@v18
-        with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-          application_name: docker-react
-          environment_name: Dockerreact-env
-          existing_bucket_name: elasticbeanstalk-ap-southeast-2-605313441167
-          region: ap-southeast-2
-          version_label: v${{ github.sha }}
-          deployment_package: deploy.zip
-          use_existing_version_if_available: true
+  - if: github.ref == 'refs/heads/master' # deploy only for the master branch
+    name: Deploy to Elastic Beanstalk
+    uses: einaregilsson/beanstalk-deploy@v18
+    with:
+      aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+      aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+      application_name: docker-react
+      environment_name: Dockerreact-env
+      existing_bucket_name: elasticbeanstalk-ap-southeast-2-605313441167
+      region: ap-southeast-2
+      version_label: v${{ github.sha }}
+      deployment_package: deploy.zip
+      use_existing_version_if_available: true
