@@ -31,10 +31,10 @@
 #           use_existing_version_if_available: true
 
 on:
-push:
-  branches:
-    - master
-    - feature/*
+  push:
+    branches:
+      - master
+      - feature/*
 
 jobs:
   build-and-deploy:
