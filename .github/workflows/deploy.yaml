@@ -9,8 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
       - run: docker build -t pmagas/docker-react -f Dockerfile.dev .
       - run: docker run -e CI=true pmagas/docker-react npm run test-cov
@@ -27,6 +26,6 @@ jobs:
           environment_name: Dockerreact-env
           existing_bucket_name: elasticbeanstalk-ap-southeast-2-605313441167
           region: ap-southeast-2
-          version_label: ${{ github.sha }}
+          version_label: v${{ github.sha }}
           deployment_package: deploy.zip
           use_existing_version_if_available: true
